@@ -13,7 +13,10 @@ import textwrap
 from memorylane.memory_readers.torch import get_memory_usage
 
 # Initialize a shared Rich console and highlighter.
-console = Console()  # type: ignore
+console = Console(
+    force_jupyter=False,
+    width=1000
+)  # type: ignore
 
 # Thread-local storage for current trace depth (used for indenting nested traces).
 thread_data = threading.local()
