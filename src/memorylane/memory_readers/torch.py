@@ -1,7 +1,7 @@
 import torch
 
 
-def get_memory_usage(device: str | None = None) -> tuple[float, float]:
+def get_memory_usage(device: str | None = None) -> tuple[int, int]:
     """Return current and peak allocated CUDA memory in bytes.
 
     Returns

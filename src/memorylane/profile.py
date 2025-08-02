@@ -44,6 +44,12 @@ def profile(
         indent_guides=True,
     )
 
+    
+    def _color_for_delta(d: float) -> str:
+        if abs(d) < threshold:
+            return "grey50"
+        return "green bold" if d > 0 else "red bold"
+
     def decorator(fn: Callable) -> Callable:  # noqa: D401
 
         @functools.wraps(fn)
@@ -60,7 +66,7 @@ def profile(
 
             source_lines, start_line = inspect.getsourcelines(fn)
             source_lines = textwrap.dedent("".join(source_lines)).splitlines()
-            # Map absolute line numbers in the file -> stripped source text.
+            # Map absolute line numbers in the file -> source text.
             source_map: dict[int, str] = {
                 start_line + idx: line.rstrip("\n")
                 for idx, line in enumerate(source_lines)
@@ -70,54 +76,47 @@ def profile(
                 f"[bold]Tracing {func_display_name!r}[/bold] (file: {filename})"
             )
 
-            prev_mem, prev_peak = get_memory_usage()
-            prev_lineno: int | None = None  # The line that has just executed.
+            baseline_mem, baseline_peak = get_memory_usage()
+            prev_mem, prev_peak = baseline_mem, baseline_peak
+            prev_file: Path | None = None
+            prev_lineno: int | None = None
 
-            def tracer(frame, event, arg):  # noqa: D401, ANN001
-                nonlocal prev_mem, prev_peak, prev_lineno
+            def tracer(frame, event, arg):
+                nonlocal prev_mem, prev_peak, prev_lineno, prev_file
 
-                # We handle two situations:
-                # 1. "line" events *before* the interpreter executes that line
-                # 2. The final "return" event after the function has finished.
-                if Path(frame.f_code.co_filename).resolve() != filename:
-                    return tracer
+                if (
+                    (prev_file == filename) and
+                    (prev_lineno in source_map.keys())
+                ):
+                    mem, peak = get_memory_usage()
+                    mem -= baseline_mem
+                    peak -= baseline_peak
+                    delta_mem = mem - prev_mem
+                    delta_peak = peak - prev_peak
+                    prev_mem, prev_peak = mem, peak
 
-                if event not in {"line", "return"}:
-                    return tracer
+                    is_significant = abs(delta_mem) > threshold or abs(delta_peak) > threshold
 
-                cur_mem, cur_peak = get_memory_usage()
+                    if is_significant or True:
 
-                # We only *print* when we have a line that has just executed.
-                if prev_lineno is not None:
-                    delta_mem = cur_mem - prev_mem
-                    delta_peak = cur_peak - prev_peak
+                        mem_color, peak_color = map(
+                            _color_for_delta,
+                            (delta_mem, delta_peak)
+                        )
 
-                    code_text = source_map.get(prev_lineno, "<unknown>")
+                        segments: list[Text] = [
+                            Text(f"Mem: {make_str(mem)}", style=mem_color),
+                            Text(f"ΔMem: {make_str(delta_mem)}", style=mem_color),
+                            Text(f"Peak: {make_str(peak)}", style=peak_color),
+                            Text(f"ΔPeak: {make_str(delta_peak)}", style=peak_color),
+                            Text(f"L{frame.f_lineno:<4}", style="cyan"),
+                            syntax.highlight(source_map[prev_lineno]),
+                        ]
 
-                    # Build segments with individual coloring based on their respective delta values.
-                    def _color_for_delta(d: float) -> str:  # noqa: ANN001
-                        if abs(d) < threshold:
-                            return "grey50"
-                        return "green bold" if d > 0 else "red bold"
+                        console.print(*segments, sep=" | ", end="")
 
-                    # Colours for memory and peak (mem colours shared with ΔMem, peak colours with ΔPeak).
-                    mem_color = _color_for_delta(delta_mem)
-                    peak_color = _color_for_delta(delta_peak)
-
-                    segments: list[Text] = [
-                        Text(f"Mem: {make_str(cur_mem)}", style=mem_color),
-                        Text(f"ΔMem: {make_str(delta_mem)}", style=mem_color),
-                        Text(f"Peak: {make_str(cur_peak)}", style=peak_color),
-                        Text(f"ΔPeak: {make_str(delta_peak)}", style=peak_color),
-                        Text(f"L{prev_lineno:<4}", style="cyan"),
-                        syntax.highlight(code_text),
-                    ]
-
-                    console.print(*segments, sep=" | ", end="")
-
-                # For both "line" and "return" events, update state for the next iteration.
-                prev_mem, prev_peak = cur_mem, cur_peak
-                prev_lineno = frame.f_lineno if event == "line" else None
+                prev_file = Path(frame.f_code.co_filename).resolve()
+                prev_lineno = frame.f_lineno
 
                 return tracer
 
@@ -126,6 +125,7 @@ def profile(
                 return fn(*args, **kwargs)
             finally:
                 sys.settrace(None)
+                console.print(f"[bold]Done tracing {func_display_name!r}[/bold]")
 
         return wrapper
 
@@ -151,12 +151,20 @@ if __name__ == "__main__":
         c = b.relu()
         if True:
             c *= c + 2 + 3
-        del a
+        # del a
         del b
+        d = child_function(c)
         for i in range(3):
             c *= c
         torch.cuda.empty_cache()
         d = c.mean()
         out = d.item()
+
+        return out
+
+    @profile
+    def child_function(x):
+        y = x * x
+        return y * (y + 2 + 3)
 
     example_function()
