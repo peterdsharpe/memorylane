@@ -446,6 +446,12 @@ dependencies = [
     { name = "rich", extra = ["jupyter"] },
 ]
 
+[package.optional-dependencies]
+torch = [
+    { name = "torch", version = "2.7.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'linux' and sys_platform != 'win32'" },
+    { name = "torch", version = "2.7.1+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+
 [package.dev-dependencies]
 dev = [
     { name = "ipykernel" },
@@ -459,7 +465,12 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "rich", extras = ["jupyter"], specifier = ">=14.1.0" }]
+requires-dist = [
+    { name = "rich", extras = ["jupyter"], specifier = ">=14.1.0" },
+    { name = "torch", marker = "(sys_platform == 'linux' and extra == 'torch') or (sys_platform == 'win32' and extra == 'torch')", specifier = ">=2.0.0", index = "https://download.pytorch.org/whl/cu128" },
+    { name = "torch", marker = "sys_platform != 'linux' and sys_platform != 'win32' and extra == 'torch'", specifier = ">=2.0.0" },
+]
+provides-extras = ["torch"]
 
 [package.metadata.requires-dev]
 dev = [
