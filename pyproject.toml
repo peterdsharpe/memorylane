@@ -1,7 +1,7 @@
 [project]
 name = "memorylane"
 version = "0.1.0"
-description = "Super-lightweight line-by-line memory profiler in numerical Python code. See where those allocations are coming from! Supports NumPy, PyTorch, and more to come."
+description = "Super-lightweight line-by-line memory profiler for numerical Python code. See where those allocations are coming from! Supports NumPy, PyTorch, and more to come."
 readme = "README.md"
 authors = [
     { name = "Peter Sharpe", email = "peterdsharpe@gmail.com" }
@@ -9,6 +9,11 @@ authors = [
 requires-python = ">=3.10"
 dependencies = [
     "rich[jupyter]>=14.1.0",
+]
+
+[project.optional-dependencies]
+torch = [
+    "torch>=2.0.0",
 ]
 
 [build-system]
