@@ -11,7 +11,6 @@ A super-lightweight line-by-line memory profiler for numerical Python code. See 
 ## Installation
 
 ```bash
-pip install memorylane
 pip install memorylane[torch]  # For PyTorch support
 ```
 
