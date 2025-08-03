@@ -14,7 +14,7 @@ import textwrap
 from functools import lru_cache
 
 # Initialize a shared Rich console and highlighter.
-console = Console(force_jupyter=False, width=1000)  # type: ignore
+default_console = Console(force_jupyter=False, width=1000, record=True)  # type: ignore
 
 # Thread-local storage for current trace depth (used for indenting nested traces).
 thread_data = threading.local()
@@ -27,6 +27,7 @@ def profile(
     memory_type: Literal["torch_cuda", "torch_cpu", "python"] = "torch_cuda",
     threshold: float = 0.5 * 1024**2,
     only_show_significant: bool = False,
+    _console: Console | None = None,
 ) -> Callable:  # noqa: D401
     """Decorator that prints memory usage after each executed *source line*.
 
@@ -44,6 +45,8 @@ def profile(
     ...     s = t.sum()
     ...     return s.item()
     """
+    if _console is None:
+        _console = default_console
 
     def decorator(fn: Callable) -> Callable:
 
@@ -54,7 +57,7 @@ def profile(
                 from memorylane.memory_readers.torch import get_memory_usage
 
                 get_memory_usage = partial(get_memory_usage, device="cuda")  # type: ignore
-                import torch
+                import torch  # type: ignore
 
                 torch.cuda.empty_cache()
             elif memory_type == "torch_cpu":
@@ -83,7 +86,7 @@ def profile(
 
             def iprint(*args, **kwargs):
                 """Print with indentation."""
-                console.print(indent_prefix, *args, **kwargs)
+                _console.print(indent_prefix, *args, **kwargs)
 
             if thread_data._memorylane_indent_level == 0:
                 iprint(
