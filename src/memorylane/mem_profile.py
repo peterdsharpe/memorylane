@@ -11,6 +11,7 @@ from rich.console import Console  # type: ignore
 from rich.syntax import Syntax  # type: ignore
 from rich.text import Text  # type: ignore
 import textwrap
+from functools import lru_cache
 
 # Initialize a shared Rich console and highlighter.
 console = Console(force_jupyter=False, width=1000)  # type: ignore
@@ -183,7 +184,7 @@ def profile(
                             Text(f"Peak: {make_str(peak)}", style=peak_color),
                             Text(f"ΔPeak: {make_str(delta_peak)}", style=peak_color),
                             Text(
-                                f"{fn_filepath.name}:{state['lineno']:<4}",
+                                f"{fn_filename_str}:{state['lineno']:<4}",
                                 style="pale_turquoise4",
                             ),
                             syntax_highlighter.highlight(
@@ -235,7 +236,7 @@ def profile(
         return decorator
     return decorator(_fn)
 
-
+@lru_cache(maxsize=64)
 def make_str(mem: float) -> str:
     """Given a memory usage, in bytes, return a string suitable for printing."""
     return f"{mem / 1024**2:>6,.0f} MB"
