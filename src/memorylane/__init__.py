@@ -1,3 +1,1 @@
-from rich import pretty
-
-pretty.install()
+from memorylane.mem_profile import profile
