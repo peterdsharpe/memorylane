@@ -1,0 +1,7 @@
+ ━━━━━━ MemoryLane: Line-by-Line Memory Profiler ━━━━━━
+ Tracing 'my_function' (file: /home/psharpe/GitHub/memorylane/examples/make_report/make_reports.py:9):
+ Mem:    100 MB | ΔMem:    100 MB | Peak:    100 MB | ΔPeak:    100 MB | make_reports.py:11   |     x = torch.randn(5120, 5120, device="cuda")
+ Mem:    108 MB | ΔMem:      8 MB | Peak:    208 MB | ΔPeak:    108 MB | make_reports.py:12   |     x = x @ x
+ Mem:    108 MB | ΔMem:      0 MB | Peak:    208 MB | ΔPeak:      0 MB | make_reports.py:13   |     x = x.relu()
+ Mem:      8 MB | ΔMem:   -100 MB | Peak:    208 MB | ΔPeak:      0 MB | make_reports.py:14   |     x = x.mean()
+ Mem:      8 MB | ΔMem:      0 MB | Peak:    208 MB | ΔPeak:      0 MB | make_reports.py:15   |     return x
