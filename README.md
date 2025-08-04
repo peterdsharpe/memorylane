@@ -53,3 +53,6 @@ This will print your line-by-line memory usage:
     * Python whole-process memory usage
     * ...and more!
 
+## Examples
+
+Under construction - for now, see the [examples](./examples) folder!
