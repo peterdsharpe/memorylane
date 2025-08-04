@@ -43,7 +43,7 @@ This will print your line-by-line memory usage:
 ## Features
 
 * For complicated functions, filter the report to only show lines with non-negligible changes in memory usage: `@profile(only_show_significant=True)`
-* When used from terminal, the printouts like `make_reports.py:11` become clickable links that will take you directly to the offending line in your code
+* When used from terminal via most editors (e.g., VSCode/Cursor, PyCharm, etc.), the printouts like `make_reports.py:11` become clickable links that will take you directly to the offending line in your code
 * Profiling of multiple functions, including nested ones (these will be shown with indentation, to allow you to see where the allocations are coming from)
 * Report generation in HTML and text formats
 * (Work in progress) Support for measuring memory usage of:
