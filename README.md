@@ -1,5 +1,8 @@
 <h1 align="center"> MemoryLane 💾🛣️ </h1>
 
+[![PyPI](https://img.shields.io/pypi/v/memorylane.svg)](https://pypi.python.org/pypi/memorylane)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-brightgreen.svg)](https://opensource.org/license/apache-2-0)
+
 by Peter Sharpe
 
 -----
