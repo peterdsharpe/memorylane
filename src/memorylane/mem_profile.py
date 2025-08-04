@@ -1,11 +1,9 @@
-from asyncio import base_events
 import gc
 import inspect
 import sys
 import functools
 from functools import partial
 from typing import Callable, Literal
-import threading
 from pathlib import Path
 from rich.console import Console  # type: ignore
 from rich.syntax import Syntax  # type: ignore
@@ -17,7 +15,9 @@ from contextvars import ContextVar
 # Initialize a shared Rich console and highlighter.
 default_console = Console(force_jupyter=False, width=1000, record=True)  # type: ignore
 
-_memorylane_indent_level: ContextVar[int] = ContextVar("memorylane_indent_level", default=0)
+_indent_level: ContextVar[int] = ContextVar(
+    "memorylane_indent_level", default=0
+)
 
 
 def profile(
@@ -81,7 +81,7 @@ def profile(
                 return "green bold" if delta_mem > 0 else "red bold"
 
             # Determine indentation level for this invocation.
-            indent_level: int = _memorylane_indent_level.get()
+            indent_level: int = _indent_level.get()
             indent_prefix: str = " " * 4 * indent_level
 
             def iprint(*args, **kwargs):
@@ -93,7 +93,7 @@ def profile(
                     "[bold magenta]━━━━━━ MemoryLane: Line-by-Line Memory Profiler ━━━━━━[/bold magenta]"
                 )
 
-            token = _memorylane_indent_level.set(indent_level + 1)
+            token = _indent_level.set(indent_level + 1)
 
             raw_filename = inspect.getsourcefile(fn)
             if raw_filename is None:
@@ -230,7 +230,7 @@ def profile(
                 sys.settrace(prev_tracer)
 
                 # Decrement depth when exiting this function.
-                _memorylane_indent_level.reset(token)
+                _indent_level.reset(token)
 
         return wrapper
 
@@ -238,6 +238,7 @@ def profile(
     if _fn is None:
         return decorator
     return decorator(_fn)
+
 
 @lru_cache(maxsize=64)
 def make_str(mem: float) -> str:
