@@ -1,6 +1,6 @@
 [project]
 name = "memorylane"
-version = "0.1.0"
+version = "0.1.1"
 description = "Super-lightweight line-by-line memory profiler for numerical Python code. See where those allocations are coming from! Supports NumPy, PyTorch, and more to come."
 readme = "README.md"
 authors = [
