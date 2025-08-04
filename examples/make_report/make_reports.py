@@ -20,4 +20,4 @@ folder = Path(__file__).parent
 
 console.save_html(folder / "memorylane_report.html", clear=False)
 console.save_text(folder / "memorylane_report.txt", clear=False)
-console.save_svg(folder / "memorylane_report.svg", clear=False)
+console.save_svg(folder / "memorylane_report.svg", clear=False, title="MemoryLane Report")
