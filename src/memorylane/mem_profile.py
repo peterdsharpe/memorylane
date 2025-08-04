@@ -12,13 +12,12 @@ from rich.syntax import Syntax  # type: ignore
 from rich.text import Text  # type: ignore
 import textwrap
 from functools import lru_cache
+from contextvars import ContextVar
 
 # Initialize a shared Rich console and highlighter.
 default_console = Console(force_jupyter=False, width=1000, record=True)  # type: ignore
 
-# Thread-local storage for current trace depth (used for indenting nested traces).
-thread_data = threading.local()
-thread_data._memorylane_indent_level = 0
+_memorylane_indent_level: ContextVar[int] = ContextVar("memorylane_indent_level", default=0)
 
 
 def profile(
@@ -82,18 +81,19 @@ def profile(
                 return "green bold" if delta_mem > 0 else "red bold"
 
             # Determine indentation level for this invocation.
-            indent_prefix: str = " " * 4 * thread_data._memorylane_indent_level
+            indent_level: int = _memorylane_indent_level.get()
+            indent_prefix: str = " " * 4 * indent_level
 
             def iprint(*args, **kwargs):
                 """Print with indentation."""
                 _console.print(indent_prefix, *args, **kwargs)
 
-            if thread_data._memorylane_indent_level == 0:
+            if indent_level == 0:
                 iprint(
                     "[bold magenta]━━━━━━ MemoryLane: Line-by-Line Memory Profiler ━━━━━━[/bold magenta]"
                 )
 
-            thread_data._memorylane_indent_level += 1
+            token = _memorylane_indent_level.set(indent_level + 1)
 
             raw_filename = inspect.getsourcefile(fn)
             if raw_filename is None:
@@ -230,7 +230,7 @@ def profile(
                 sys.settrace(prev_tracer)
 
                 # Decrement depth when exiting this function.
-                thread_data._memorylane_indent_level -= 1
+                _memorylane_indent_level.reset(token)
 
         return wrapper
 
