@@ -5,15 +5,15 @@ import functools
 from functools import partial
 from typing import Callable, Literal
 from pathlib import Path
-from rich.console import Console  # type: ignore
-from rich.syntax import Syntax  # type: ignore
-from rich.text import Text  # type: ignore
+from rich.console import Console
+from rich.syntax import Syntax
+from rich.text import Text
 import textwrap
 from functools import lru_cache
 from contextvars import ContextVar
 
 # Initialize a shared Rich console and highlighter.
-default_console = Console(force_jupyter=False, width=1000, record=True)  # type: ignore
+default_console = Console(force_jupyter=False, width=1000, record=True)
 
 _indent_level: ContextVar[int] = ContextVar(
     "memorylane_indent_level", default=0
@@ -55,14 +55,14 @@ def profile(
             if memory_type == "torch_cuda":
                 from memorylane.memory_readers.torch import get_memory_usage
 
-                get_memory_usage = partial(get_memory_usage, device="cuda")  # type: ignore
-                import torch  # type: ignore
+                get_memory_usage = partial(get_memory_usage, device="cuda")  # ty: ignore[invalid-assignment]
+                import torch
 
                 torch.cuda.empty_cache()
             elif memory_type == "torch_cpu":
                 from memorylane.memory_readers.torch import get_memory_usage
 
-                get_memory_usage = partial(get_memory_usage, device="cpu")  # type: ignore
+                get_memory_usage = partial(get_memory_usage, device="cpu")  # ty: ignore[invalid-assignment]
             elif memory_type == "python":
                 from memorylane.memory_readers.python import get_memory_usage
             else:
@@ -86,7 +86,7 @@ def profile(
 
             def iprint(*args, **kwargs):
                 """Print with indentation."""
-                _console.print(indent_prefix, *args, **kwargs)
+                _console.print(indent_prefix, *args, **kwargs)  # ty: ignore[possibly-unbound-attribute]
 
             if indent_level == 0:
                 iprint(
@@ -127,7 +127,7 @@ def profile(
             }
 
             # Pre-compute values for fast comparisons inside the tracer functions.
-            fn_code = fn.__code__  # type: ignore[attr-defined]
+            fn_code = fn.__code__  # ty: ignore[unresolved-attribute]
             fn_filepath_str = str(fn_filepath)
             fn_filename_str = str(fn_filepath.name)
 
@@ -247,7 +247,7 @@ def make_str(mem: float) -> str:
 
 
 if __name__ == "__main__":
-    import torch  # type: ignore
+    import torch
 
     @profile
     def my_function():
